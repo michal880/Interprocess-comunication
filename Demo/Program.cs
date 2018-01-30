@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using PixelComLib;
+﻿using PixelComLib;
+using System;
 namespace Demo
 {
     class Program
@@ -19,7 +13,7 @@ namespace Demo
                 Console.WriteLine("Original server");
                 PixelCom.Instance.OnMessageReceive += Instance_OnMessageReceive;
                 PixelCom.Instance.StartServer(pipeName);
-                Console.WriteLine(PixelCom.MessageReceived);
+                
                 while (true) { }
             }
             else

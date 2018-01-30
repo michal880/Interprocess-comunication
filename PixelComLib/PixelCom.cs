@@ -1,26 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Odbc;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PixelComLib
 {
+    /// <summary>
+    /// A singleton class used to access the library features
+    /// </summary>
     public class PixelCom
     {
+        #region Private fields
         private static PixelCom instance;
-
+        private static string message;
+        #endregion
+        public delegate void MessageReceive(string mess);
         public static PixelCom Instance
         {
             get { return instance ?? (instance = new PixelCom()); }
         }
-
-        private static string message;
-        public static string MessageReceived => message;
-
+        #region Methods
+        /// <summary>
+        /// Method invoked to start NamedPipeServer with the given pipeName
+        /// </summary>
+        /// <param name="pipeName"></param>
         public void StartServer(string pipeName)
         {
             Task.Factory.StartNew(() =>
@@ -36,12 +40,8 @@ namespace PixelComLib
                         using (StreamReader sr = new StreamReader(server))
                         {
                             message = sr.ReadLine();
-                            {
-                                Console.WriteLine("{0}: {1}", DateTime.Now, message);
-                            }
-                            OnMessageReceive?.Invoke(message);
+                            OnMessageReceive?.Invoke(message);                   
                         }
-                        Console.WriteLine("Connection closed");
                         if (!server.IsConnected)
                             server = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1);
                     }
@@ -51,7 +51,12 @@ namespace PixelComLib
 
             });
         }
-
+        /// <summary>
+        /// Sends message using NamedPipeClient to the server 
+        /// of the given pipeName
+        /// </summary>
+        /// <param name="pipeName"></param>
+        /// <param name="message"></param>
         public static void SendMessage(string pipeName, string message)
         {
             var client = new NamedPipeClientStream(pipeName);
@@ -69,14 +74,20 @@ namespace PixelComLib
                 client.Dispose();
             }
         }
-
+        /// <summary>
+        /// Checks whether there's already an instance of the program
+        /// </summary>
+        /// <returns></returns>
         public static bool HostExists()
         {
             return System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() > 1;
         }
-        
-        public delegate void MessageReceive(string mess);
+        #endregion
 
+        /// <summary>
+        /// Use this event to access the message when the server receives it
+        /// </summary>
         public event MessageReceive OnMessageReceive;
+
     }
 }
